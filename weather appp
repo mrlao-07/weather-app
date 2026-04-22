@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+ <meta charset="UTF-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <title>Weather Application Project</title>
+ <style>
+   * { box-sizing: border-box; margin: 0; padding: 0; }
+   html { scroll-behavior: smooth; }
+   body {
+     font-family: Arial, Helvetica, sans-serif;
+     background: linear-gradient(180deg, #08142b 0%, #10284f 45%, #1b4e7a 100%);
+     color: #eef6ff;
+     line-height: 1.6;
+     overflow-x: hidden;
+   }
+   .bg-orb {
+     position: fixed;
+     border-radius: 50%;
+     filter: blur(50px);
+     opacity: 0.28;
+     z-index: 0;
+     animation: float 8s ease-in-out infinite;
+   }
+   .orb1 { width: 280px; height: 280px; background: #63d1ff; top: 50px; left: -80px; }
+   .orb2 { width: 220px; height: 220px; background: #7ae0c6; top: 420px; right: -60px; animation-delay: 2s; }
+   .orb3 { width: 300px; height: 300px; background: #4fa2ff; bottom: 0; left: 40%; animation-delay: 4s; }
+   @keyframes float {
+     0%,100% { transform: translateY(0px) translateX(0px); }
+     50% { transform: translateY(-18px) translateX(10px); }
+   }
+
+
+   .container {
+     width: min(1150px, 92%);
+     margin: 0 auto;
+     position: relative;
+     z-index: 1;
+   }
+   nav {
+     position: sticky;
+   top: 0;
+     z-index: 10;
+     backdrop-filter: blur(16px);
+     background: rgba(6, 18, 40, 0.7);
+     border-bottom: 1px solid rgba(255,255,255,0.08);
+   }
+   .nav-inner {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 14px 0;
+     gap: 16px;
+   }
+   .brand {
+     font-weight: 800;
+     letter-spacing: .5px;
+     font-size: 1.05rem;
+   }
+   .brand span { color: #83ddff; }
+   .menu {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 10px;
+   }
+   .menu a {
+     color: #e9f7ff;
+     text-decoration: none;
+     padding: 8px 14px;
+     border-radius: 999px;
+     background: rgba(255,255,255,0.06);
+     transition: .25s;
+     font-size: .95rem;
+   }
+   .menu a:hover {
+     background: rgba(131,221,255,0.18);
+     transform: translateY(-2px);
+   }
+   header {
+     min-height: 100vh;
+     display: grid;
+     align-items: center;
+     padding: 60px 0;
+   }
+   .hero {
+     display: grid;
+     grid-template-columns: 1.15fr .85fr;
+     gap: 32px;
+     align-items: center;
+   }
+   .hero-text h3 {
+     color: #8adfff;
+     margin-bottom: 14px;
+     letter-spacing: 2px;
+     text-transform: uppercase;
+     font-size: .95rem;
+   }
+   .hero-text h1 {
+     font-size: clamp(2.2rem, 5vw, 4.6rem);
+     line-height: 1.05;
+     margin-bottom: 18px;
+   }
+   .hero-text p {
+     color: #d9ebff;
+     font-size: 1.05rem;
+     max-width: 680px;
+     margin-bottom: 24px;
+   }
+   .hero-badges {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 12px;
+     margin-bottom: 26px;
+   }
+   .badge {
+     padding: 10px 16px;
+     border-radius: 999px;
+     background: rgba(255,255,255,0.08);
+     border: 1px solid rgba(255,255,255,0.08);
+   }
+   .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; }
+   .btn {
+     padding: 13px 22px;
+     border-radius: 14px;
+     text-decoration: none;
+ font-weight: bold;
+     transition: .25s;
+     display: inline-block;
+   }
+   .btn-primary {
+     background: linear-gradient(135deg, #76dbff, #56a9ff);
+     color: #06203f;
+   }
+   .btn-secondary {
+     border: 1px solid rgba(255,255,255,0.18);
+     color: white;
+     background: rgba(255,255,255,0.06);
+   }
+   .btn:hover { transform: translateY(-3px) scale(1.01); }
+
+
+   .device-card {
+     background: rgba(255,255,255,0.08);
+     border: 1px solid rgba(255,255,255,0.08);
+     border-radius: 28px;
+     padding: 22px;
+     box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+     backdrop-filter: blur(16px);
+     position: relative;
+     overflow: hidden;
+   }
+   .device-card::before {
+     content: "";
+     position: absolute;
+     inset: 0;
+     background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+     pointer-events: none;
+   }
+   .mini-label {
+     font-size: .85rem;
+     color: #a8ddff;
+     margin-bottom: 10px;
+     text-transform: uppercase;
+     letter-spacing: 1.5px;
+   }
+   .device-screen {
+     background: linear-gradient(180deg, #0d1f30, #09131f);
+     border-radius: 20px;
+     padding: 18px;
+     border: 1px solid rgba(255,255,255,0.08);
+     min-height: 380px;
+     position: relative;
+   }
+   .screen-top {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 18px;
+     font-size: .95rem;
+     color: #aee8ff;
+   }
+   .clock {
+     font-size: 2rem;
+     font-weight: 800;
+     margin-bottom: 4px;
+   }
+   .date {
+     color: #c6e9ff;
+     margin-bottom: 18px;
+   }
+   .weather-main {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 14px;
+     margin-bottom: 16px;
+   }
+   .metric {
+     background: rgba(118,219,255,0.08);
+     border: 1px solid rgba(255,255,255,0.08);
+     border-radius: 18px;
+     padding: 16px;
+   }
+   .metric .title { font-size: .9rem; color: #b8e8ff; }
+   .metric .value { font-size: 1.9rem; font-weight: 800; margin-top: 6px; }
+   .alert-box {
+     margin-top: 10px;
+     border-radius: 16px;
+     padding: 14px;
+     font-weight: bold;
+     text-align: center;
+     background: rgba(122,224,198,0.14);
+     border: 1px solid rgba(122,224,198,0.22);
+     color: #dffff5;
+     transition: .25s;
+   }
+   section {
+     padding: 70px 0;
+   }
+   .section-title {
+     text-align: center;
+     margin-bottom: 14px;
+     font-size: clamp(1.7rem, 3vw, 2.6rem);
+   }
+   .section-sub {
+     text-align: center;
+     max-width: 820px;
+     margin: 0 auto 34px;
+     color: #d4e9fb;
+   }
+   .grid-2 {
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 22px;
+   }
+   .card {
+     background: rgba(255,255,255,0.07);
+     border: 1px solid rgba(255,255,255,0.08);
+     border-radius: 24px;
+     padding: 24px;
+     box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+     backdrop-filter: blur(12px);
+     transition: transform .25s ease;
+   }
+   .card:hover { transform: translateY(-6px); }
+   .card h3 { margin-bottom: 10px; color: #95e4ff; }
+   .card p, .card li { color: #edf6ff; }
+
+
+   .features {
+     display: grid;
+     grid-template-columns: repeat(4, 1fr);
+     gap: 18px;
+   }
+   .feature {
+     padding: 22px 18px;
+     border-radius: 22px;
+     background: rgba(255,255,255,0.06);
+     border: 1px solid rgba(255,255,255,0.08);
+     text-align: center;
+   }
+   .feature .icon { font-size: 2rem; margin-bottom: 10px; }
+   .feature h4 { margin-bottom: 8px; color: #9fe7ff; }
+
+
+   .process {
+     display: grid;
+     grid-template-columns: repeat(4, 1fr);
+     gap: 18px;
+   }
+   .step {
+     background: rgba(255,255,255,0.07);
+     border-radius: 24px;
+     padding: 24px 18px;
+     border: 1px solid rgba(255,255,255,0.08);
+     position: relative;
+     overflow: hidden;
+   }
+   .step-number {
+     width: 52px;
+     height: 52px;
+     border-radius: 50%;
+     display: grid;
+     place-items: center;
+     font-weight: 800;
+     margin-bottom: 16px;
+     color: #072241;
+     background: linear-gradient(135deg, #9de8ff, #5facff);
+   }
+   .step h4 { color: #9fe7ff; margin-bottom: 10px; }
+
+
+   .tech-grid {
+     display: grid;
+     grid-template-columns: repeat(3, 1fr);
+     gap: 18px;
+   }
+   .tech {
+     background: rgba(255,255,255,0.07);
+     border: 1px solid rgba(255,255,255,0.08);
+     border-radius: 20px;
+     padding: 20px;
+   }
+   .tech h4 { color: #a8eaff; margin-bottom: 10px; }
+
+
+   .team {
+     display: grid;
+     grid-template-columns: repeat(3, 1fr);
+     gap: 18px;
+     margin-top: 18px;
+   }
+   .member {
+     background: rgba(255,255,255,0.07);
+     border: 1px solid rgba(255,255,255,0.08);
+     border-radius: 24px;
+     padding: 24px;
+     text-align: center;
+   }
+   .avatar {
+     width: 76px;
+     height: 76px;
+     border-radius: 50%;
+     margin: 0 auto 12px;
+     display: grid;
+     place-items: center;
+     font-size: 1.3rem;
+     font-weight: 800;
+     color: #072241;
+     background: linear-gradient(135deg, #8fe5ff, #73ffc8);
+   }
+
+
+   footer {
+     padding: 28px 0 36px;
+     text-align: center;
+     color: #cde5f7;
+     border-top: 1px solid rgba(255,255,255,0.08);
+     margin-top: 30px;
+     background: rgba(2,9,20,0.18);
+   }
+   .fade-up {
+     opacity: 0;
+     transform: translateY(24px);
+     transition: all .7s ease;
+   }
+   .fade-up.show {
+     opacity: 1;
+     transform: translateY(0);
+   }
+
+
+   @media (max-width: 980px) {
+     .hero, .grid-2, .features, .process, .tech-grid, .team {
+       grid-template-columns: 1fr 1fr;
+     }
+   }
+   @media (max-width: 700px) {
+     .hero, .grid-2, .features, .process, .tech-grid, .team {
+       grid-template-columns: 1fr;
+     }
+     .nav-inner {
+       flex-direction: column;
+       align-items: flex-start;
+     }
+     .device-screen { min-height: auto; }
+     .weather-main { grid-template-columns: 1fr; }
+     .menu { gap: 8px; }
+   }
+ </style>
+</head>
+<body>
+ <div class="bg-orb orb1"></div>
+ <div class="bg-orb orb2"></div>
+ <div class="bg-orb orb3"></div>
+ <div class="rain"></div>
+
+
+ <nav>
+   <div class="container nav-inner">
+     <div class="brand">NEST <span>Weather Application</span></div>
+     <div class="menu">
+       <a href="#team">Баг</a>
+       <a href="#intro">Танилцуулга</a>
+       <a href="#idea">Санаа</a>
+       <a href="#plan">Төлөвлөгөө</a>
+       <a href="#use">Ашиглах</a>
+       <a href="#process">Үйл явц</a>
+     </div>
+   </div>
+ </nav>
+
+
+ <header>
+   <div class="container hero">
+     <div class="hero-text fade-up show">
+       <h3>НЭСТ ЭДҮКЭЙШН АЙ ТИ ДУНД СУРГУУЛЬ</h3>
+       <h1>Weather Application төслийн веб танилцуулга</h1>
+       <p>
+         Энэхүү төсөл нь өдөр тутмын амьдралд хэрэгтэй ухаалаг цаг агаарын мэдээллийн систем юм.
+         ESP32, DHT11, LCD дэлгэц болон Blynk аппликейшн ашиглан гэрийн орчны температур,
+         чийгшил, огноо, цагийг харуулж, шаардлагатай үед анхааруулга илгээдэг.
+       </p>
+       <div class="hero-badges">
+         <div class="badge">ESP32</div>
+         <div class="badge">DHT11</div>
+         <div class="badge">LCD 16x2</div>
+         <div class="badge">Blynk App</div>
+         <div class="badge">Arduino IDE</div>
+       </div>
+       <div class="hero-actions">
+         <a href="#intro" class="btn btn-primary">Төслийг үзэх</a>
+         <a href="#dashboard" class="btn btn-secondary">Live Demo</a>
+       </div>
+     </div>
+
+
+     <div class="device-card fade-up">
+       <div class="mini-label">Live Demo Dashboard</div>
+       <div class="device-screen" id="dashboard">
+         <div class="screen-top">
+           <span>Wi-Fi Connected</span>
+           <span>Blynk Alert Ready</span>
+         </div>
+         <div class="clock" id="clock">00:00:00</div>
+         <div class="date" id="date">2026-04-14</div>
+
+
+         <div class="weather-main">
+           <div class="metric">
+             <div class="title">🌡 Дотор температур</div>
+             <div class="value" id="tempIndoor">25°C</div>
+           </div>
+           <div class="metric">
+             <div class="title">💧 Чийгшил</div>
+             <div class="value" id="humidity">48%</div>
+           </div>
+           <div class="metric">
+             <div class="title">🏠 Гэрийн орчин</div>
+             <div class="value" id="statusText">Тохиромжтой</div>
+           </div>
+           <div class="metric">
+             <div class="title">🌤 Гадаад температур</div>
+             <div class="value" id="tempOutdoor">14°C</div>
+           </div>
+         </div>
+
+
+         <div class="alert-box" id="alertBox">Орчны нөхцөл хэвийн байна.</div>
+       </div>
+     </div>
+   </div>
+ </header>
+<section id="data">
+   <div class="container">
+     <h2 class="section-title fade-up">Судалгаа</h2>
+     <p class="section-sub fade-up">7 хоног бүрийн анализ</p>
+   </div>
+ </section>
+<section id="team">
+   <div class="container">
+     <h2 class="section-title fade-up">Гүйцэтгэсэн</h2>
+     <p class="section-sub fade-up">9а ангийн сурагчдын хамтын бүтээл</p>
+     <div class="team">
+       <div class="member fade-up">
+         <div class="avatar">ЦМ</div>
+         <h3>Ц.Молор</h3>
+         <p>Төслийн багийн гишүүн</p>
+       </div>
+       <div class="member fade-up">
+         <div class="avatar">ММ</div>
+         <h3>М.Маралмаа</h3>
+         <p>Төслийн багийн гишүүн</p>
+       </div>
+       <div class="member fade-up">
+         <div class="avatar">ГН</div>
+         <h3>Г.Номин-Эрдэнэ</h3>
+         <p>Төслийн багийн гишүүн</p>
+       </div>
+     </div>
+   </div>
+ </section>
+
+ <section id="intro">
+   <div class="container">
+     <h2 class="section-title fade-up">Төслийн танилцуулга</h2>
+     <p class="section-sub fade-up">
+       Weather Application нь гэр болон орчны нөхцөлийг ухаалаг аргаар хянах,
+       хэрэглэгчид цаг тухайд нь мэдээлэл өгөх зорилготой IoT төсөл юм.
+     </p>
+     <div class="features">
+       <div class="feature fade-up"><div class="icon">⏰</div><h4>Сэрүүлэг ба цаг</h4><p>Огноо, цагийг дэлгэц дээр харуулна.</p></div>
+       <div class="feature fade-up"><div class="icon">🌡</div><h4>Температур</h4><p>Дотор, гадаад орчны температурыг үзүүлнэ.</p></div>
+       <div class="feature fade-up"><div class="icon">💧</div><h4>Чийгшил</h4><p>DHT11 мэдрэгчээр бодит мэдээлэл авна.</p></div>
+       <div class="feature fade-up"><div class="icon">📱</div><h4>Апп холболт</h4><p>Blynk апп-аар алсаас хянах боломжтой.</p></div>
+     </div>
+   </div>
+ </section>
+
+
+ <section id="idea">
+   <div class="container">
+     <h2 class="section-title fade-up">Санаагаа хэрхэн олсон бэ?</h2>
+     <div class="grid-2">
+       <div class="card fade-up">
+         <h3>Асуудлыг олж харсан нь</h3>
+         <p>
+           Орчин үед хүмүүс завгүй амьдралын хэв маягтай болж, өдөр тутмын мэдээллээ тогтмол шалгах цаг багасаж байна.
+           Тиймээс цаг, огноо, температур, чийгшлийг нэг дор харуулж, хэрэгтэй үед анхааруулга өгдөг төхөөрөмж хэрэгтэй гэж үзсэн.
+         </p>
+       </div>
+       <div class="card fade-up">
+         <h3>Бидний зорилго</h3>
+         <p>
+           Хэрэглэгчид гэрийнхээ орчны мэдээллийг хялбар харах, алсаас шалгах,
+           мөн орчны өөрчлөлтийг цаг тухайд нь мэдэх боломжтой энгийн бөгөөд хэрэгцээтэй систем бүтээх.
+         </p>
+       </div>
+     </div>
+   </div>
+ </section>
+
+
+ <section id="plan">
+   <div class="container">
+     <h2 class="section-title fade-up">Хэрэгжүүлж буй төлөвлөгөө</h2>
+     <div class="grid-2">
+       <div class="card fade-up">
+         <h3>Төхөөрөмжийн хэсэг</h3>
+         <ul>
+           <li>ESP32 ашиглан Wi-Fi-д холбох</li>
+           <li>DHT11 мэдрэгчээр температур, чийгшил хэмжих</li>
+           <li>LCD 16x2 дэлгэц дээр мэдээлэл харуулах</li>
+           <li>Цаг, он сар өдөртэй хослуулан ажиллуулах</li>
+         </ul>
+       </div>
+       <div class="card fade-up">
+         <h3>Программ ба апп хэсэг</h3>
+         <ul>
+           <li>Blynk апп руу өгөгдөл дамжуулах</li>
+           <li>Температурын хэвийн бус өөрчлөлтөд мэдэгдэл илгээх</li>
+           <li>Алсаас хянах энгийн интерфэйс бий болгох</li>
+           <li>Arduino IDE дээр кодыг хөгжүүлэх</li>
+         </ul>
+       </div>
+     </div>
+   </div>
+ </section>
+
+
+ <section id="use">
+   <div class="container">
+     <h2 class="section-title fade-up">Хэрхэн ашиглах вэ?</h2>
+     <p class="section-sub fade-up">
+       Энэхүү системийг ашигласнаар хэрэглэгч нэг дор олон төрлийн мэдээлэл авч,
+       шаардлагатай үед алсаас хянах боломжтой болно.
+     </p>
+     <div class="tech-grid">
+       <div class="tech fade-up">
+         <h4>1. Төхөөрөмж асаах</h4>
+         <p>ESP32 систем ажиллаж эхэлмэгц DHT11 мэдрэгчээс температур, чийгшлийн мэдээлэл уншина.</p>
+       </div>
+       <div class="tech fade-up">
+         <h4>2. Дэлгэц дээр харах</h4>
+         <p>LCD дэлгэц дээр огноо, цаг, температур, чийгшлийг бодит цагийн байдлаар харуулна.</p>
+       </div>
+       <div class="tech fade-up">
+         <h4>3. Апп-аар шалгах</h4>
+         <p>Blynk апп ашиглан гар утаснаасаа гэрийн орчны мэдээллийг алсаас хянах боломжтой.</p>
+       </div>
+     </div>
+   </div>
+ </section>
+
+
+ <section id="process">
+   <div class="container">
+     <h2 class="section-title fade-up">Төсөл бүтээх үйл явц</h2>
+     <div class="process">
+       <div class="step fade-up">
+         <div class="step-number">01</div>
+         <h4>Схем</h4>
+         <p>Arduino болон нийт холболтын схемийг төлөвлөж, эд ангиудын уялдааг тодорхойлсон.</p>
+       </div>
+       <div class="step fade-up">
+         <div class="step-number">02</div>
+         <h4>Апп</h4>
+         <p>Blynk аппликейшн дээр өгөгдөл хүлээн авах, мэдээлэл харуулах, анхааруулга илгээх хэсгийг бодож боловсруулсан.</p>
+       </div>
+       <div class="step fade-up">
+         <div class="step-number">03</div>
+         <h4>Программ</h4>
+         <p>Arduino IDE дээр ESP32, DHT11, LCD-ийн хамтарсан ажиллагааг кодчилсон.</p>
+       </div>
+       <div class="step fade-up">
+         <div class="step-number">04</div>
+         <h4>Дизайн</h4>
+         <p>3D болон Tinkercad ашиглан төхөөрөмжийн бүтэц, байршил, харагдах байдлыг төлөвлөсөн.</p>
+       </div>
+     </div>
+   </div>
+ </section>
+
+
+ <section>
+   <div class="container">
+     <h2 class="section-title fade-up">Товчилсон үгийн жагсаалт</h2>
+     <div class="grid-2">
+       <div class="card fade-up"><h3>DHT11</h3><p>Digital Humidity and Temperature sensor</p></div>
+       <div class="card fade-up"><h3>ESP32</h3><p>Espressif Systems-ийн Wi-Fi болон Bluetooth бүхий хөгжүүлэлтийн чип</p></div>
+       <div class="card fade-up"><h3>LCD 16x2</h3><p>Liquid Crystal Display – 16 тэмдэгт, 2 мөртэй дэлгэц</p></div>
+       <div class="card fade-up"><h3>Blynk</h3><p>IoT төхөөрөмжийг гар утасны апптай холбоход ашигладаг платформ</p></div>
+     </div>
+   </div>
+ </section>
+
+
+
+ <footer>
+   <div class="container">
+     <p><strong>НЭСТ ЭДҮКЭЙШН АЙ ТИ ДУНД СУРГУУЛЬ</strong></p>
+     <p>Weather Application төслийн веб танилцуулга • 2025-2026 оны хичээлийн жил</p>
+   </div>
+ </footer>
+
+
+ <script>
+   const clock = document.getElementById('clock');
+   const dateEl = document.getElementById('date');
+   const tempIndoor = document.getElementById('tempIndoor');
+   const tempOutdoor = document.getElementById('tempOutdoor');
+   const humidity = document.getElementById('humidity');
+   const statusText = document.getElementById('statusText');
+   const alertBox = document.getElementById('alertBox');
+
+
+   function updateDateTime() {
+     const now = new Date();
+     const timeString = now.toLocaleTimeString('en-GB');
+     const dateString = now.getFullYear() + '-' +
+       String(now.getMonth() + 1).padStart(2, '0') + '-' +
+       String(now.getDate()).padStart(2, '0');
+     clock.textContent = timeString;
+     dateEl.textContent = dateString;
+   }
+
+
+   function updateWeatherDemo() {
+     const indoor = Math.floor(22 + Math.random() * 10);
+     const outdoor = Math.floor(8 + Math.random() * 12);
+     const hum = Math.floor(35 + Math.random() * 35);
+
+
+     tempIndoor.textContent = indoor + '°C';
+     tempOutdoor.textContent = outdoor + '°C';
+     humidity.textContent = hum + '%';
+
+
+     if (indoor >= 30) {
+       statusText.textContent = 'Хэт дулаан';
+       alertBox.textContent = ' Температур өндөр байна. Blynk апп руу мэдэгдэл илгээгдэнэ.';
+       alertBox.style.background = 'rgba(255, 163, 102, 0.18)';
+       alertBox.style.borderColor = 'rgba(255, 163, 102, 0.35)';
+     } else if (indoor <= 23) {
+       statusText.textContent = 'Сэрүүхэн';
+       alertBox.textContent = 'Орчны температур бага байна. Хянаж шалгахыг зөвлөж байна.';
+       alertBox.style.background = 'rgba(126, 206, 255, 0.16)';
+       alertBox.style.borderColor = 'rgba(126, 206, 255, 0.32)';
+     } else {
+       statusText.textContent = 'Тохиромжтой';
+       alertBox.textContent = 'Орчны нөхцөл хэвийн байна.';
+       alertBox.style.background = 'rgba(122,224,198,0.14)';
+       alertBox.style.borderColor = 'rgba(122,224,198,0.22)';
+     }
+   }
+
+
+   updateDateTime();
+   updateWeatherDemo();
+   setInterval(updateDateTime, 1000);
+   setInterval(updateWeatherDemo, 3500);
+
+
+   const observer = new IntersectionObserver((entries) => {
+     entries.forEach(entry => {
+       if (entry.isIntersecting) {
+         entry.target.classList.add('show');
+       }
+     });
+   }, { threshold: 0.15 });
+
+
+   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+ </script>
+</body>
+</html>
+
